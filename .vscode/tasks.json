@@ -1,0 +1,168 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "This (debug)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${file}",
+                "-o",
+                "${workspaceFolder}\\Builds\\Debug\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "This (release)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${file}",
+                "-o",
+                "${workspaceFolder}\\Builds\\Release\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "All (debug)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${fileDirname}\\*.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Debug\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "All (release)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${fileDirname}\\*.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Release\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "++This (debug)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${file}", "${workspaceFolder}\\Libraries\\utils.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Debug\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "++This (release)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${file}", "${workspaceFolder}\\Libraries\\utils.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Release\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "++All (debug)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${fileDirname}\\*.cpp", "${workspaceFolder}\\Libraries\\utils.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Debug\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group":{
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "++All (release)",
+            "command": "E:\\mingw-w64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "${fileDirname}\\*.cpp", "${workspaceFolder}\\Libraries\\utils.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Release\\${fileBasenameNoExtension}.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\mingw-w64\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        }
+    ]
+}
