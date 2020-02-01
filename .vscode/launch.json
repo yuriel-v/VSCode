@@ -8,14 +8,16 @@
             "name": "Build and debug active file (debug)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}\\Debug\\${fileBasenameNoExtension}.exe",
+            "program": "${workspaceFolder}\\Builds\\Debug\\${fileBasenameNoExtension}.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            //choose between MinGW or Cygwin
             "miDebuggerPath": "E:\\mingw-w64\\bin\\gdb.exe",
+            //"miDebuggerPath": "E:\\cygwin\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Habilitar a reformatação automática para gdb",
@@ -23,20 +25,22 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "g++.exe build active file"
+            "preLaunchTask": "++All (debug)"
         },
         {
             "name": "Build and debug active file (release)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}\\Release\\${fileBasenameNoExtension}.exe",
+            "program": "${workspaceFolder}\\Builds\\Release\\${fileBasenameNoExtension}.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            //choose between MinGW or Cygwin
             "miDebuggerPath": "E:\\mingw-w64\\bin\\gdb.exe",
+            //"miDebuggerPath": "E:\\cygwin\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Habilitar a reformatação automática para gdb",
@@ -44,7 +48,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "g++.exe build active file"
+            "preLaunchTask": "++All (release)"
         }
     ]
 }

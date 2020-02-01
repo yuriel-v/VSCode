@@ -7,9 +7,9 @@
 
 //implementations
 void sysexit(int a) {
-	printf("\n\nProcess returned %d. Press enter to continue.\n", a);
+	std::cout<< "\n\nProcess returned "<< a <<". Press enter to continue." << std::flush;
+	//std::cin.clear(); std::cin.ignore(INT_MAX, '\n');
 	std::cin.get(); exit(a);
-	//warning: this function does NOT pause the system if the input buffer isn't empty!
 }
 
 void inflush(void) { char c; while ((c = std::cin.get()) != '\n' && c != EOF); }

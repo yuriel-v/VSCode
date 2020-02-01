@@ -163,6 +163,50 @@
                 "$gcc"
             ],
             "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "(Cygwin-Debug) Matrixinator",
+            "command": "E:\\cygwin\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "C:\\Users\\Leo\\Desktop\\C++ projects\\VSCode\\Projects\\matrixinator\\matrixinator.cpp",
+                "C:\\Users\\Leo\\Desktop\\C++ projects\\VSCode\\Projects\\matrixinator\\mtx.cpp",
+                "${workspaceFolder}\\Libraries\\utils.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Debug\\matrixinator.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\cygwin\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "(Cygwin-Release) Matrixinator",
+            "command": "E:\\cygwin\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "C:\\Users\\Leo\\Desktop\\C++ projects\\VSCode\\Projects\\matrixinator\\matrixinator.cpp",
+                "C:\\Users\\Leo\\Desktop\\C++ projects\\VSCode\\Projects\\matrixinator\\mtx.cpp",
+                "${workspaceFolder}\\Libraries\\utils.cpp",
+                "-o",
+                "${workspaceFolder}\\Builds\\Release\\matrixinator.exe",
+                "-static",
+                "-I${workspaceFolder}\\Libraries"
+            ],
+            "options": {
+                "cwd": "E:\\cygwin\\bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
         }
     ]
 }
