@@ -40,7 +40,8 @@ public:
 	double **data;					//1000x1000 matrices are too large, so dynamic allocation is in play
 	std::vector<int> usa;
 	int numSamples = 0;
-	std::string SSinput, Tree;
+	std::string SSinput, TreeFile, SSoutput;
+	bool overwrite;
 
 	//methods
 	bool isUS(int);
@@ -48,6 +49,7 @@ public:
 	//bool dataRead(std::string);
 	bool usaRead(std::string);
 	void countSamples(std::string);
+	void outputOptions(void);
 };
 
 class SSheet {
@@ -76,17 +78,18 @@ public:
 
 	//methods
 	void readSelf(std::string, int);
-private:
-	std::string removeQuotes(std::string);
 };
 
 //bare functions
-void branch(tree*, tree*);
+//void branch(tree*, tree*);
+void bulldozer(tree*);  // new branching function
 void firstRun(std::string*, std::string*);
 void manualLoad(std::string*, std::string*);
 int nodeNumber(std::string);
-double simCompare(int, int, tree*);
+//double simCompare(std::vector<tree>*, int, int);
+double bullSim(tree*, int);  // new similarity finder
 bool isLoaded(std::string);
+void nline();
 
 //10 contains 11, 12
 //4 contains 10 (11, 12), 5 (6 [7, 8], 9)

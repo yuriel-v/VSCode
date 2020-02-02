@@ -70,9 +70,13 @@ int main()
 int main()
 {
 	using namespace std;
-	string str;
-	getline(cin, str);
-	cout<<str;
+	vector<int> vec;
+	for (int i = 1; i <= 10; ++i)
+		vec.push_back(i*10);
+	
+	cout<<"vec from index 2 onwards:";
+	for (vector<int>::const_iterator it = vec.begin() + 1; it != vec.end(); ++it)
+		cout<<" "<< *it;
 
 	sysexit(0);
 }

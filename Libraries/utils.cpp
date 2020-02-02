@@ -17,3 +17,7 @@ void inflush(void) { char c; while ((c = std::cin.get()) != '\n' && c != EOF); }
 void flushfgets(char* a) { if ( a[strlen(a)-1] == '\n' ) a[strlen(a)-1] = 0; }
 
 void ascanf(const char* c, void* p) { scanf(c, p); inflush(); }
+
+bool XOR(bool a, bool b) {
+	return (a + b) % 2;
+}

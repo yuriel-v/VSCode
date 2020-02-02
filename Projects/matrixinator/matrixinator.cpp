@@ -1,5 +1,5 @@
 /*
- * The Matrixinator v0.3 (alpha)
+ * The Matrixinator v0.4 (alpha)
  * a simple utility i made for my assistant Joshu for his laboratory endeavours.
  * its purpose lies in fetching a dendrogram containing samples and the similarity
  * between them, along with a spreadsheet file to identify foreign samples from US samples.
@@ -13,7 +13,7 @@
  * it then outputs the inferred values (if applicable) into a .csv spreadsheet. it can either
  * overwrite the input spreadsheet file or create a new one, depending on the user's choice.
  *
- * -Leo, 1-Feb-2020
+ * -Leo, 2-Feb-2020
  */
 
 #include <cstdio>
@@ -25,26 +25,23 @@
 #include "mtx.hpp"
 #include "utils.hpp"
 
-
-void nline() {printf("\n==================================================\n");}
-
 int main()
 {
     //============================ initialization ============================
     using namespace std;
-    cout<<"The Matrixinator v0.3 (alpha)"; nline();
+    cout<<"The Matrixinator v0.4 (alpha)"; nline();
     bool debug = false, SSdebug = false;
-    string SSfile, TreeFile;
     int nodes;
 
     //============================ data input ============================
 
-    firstRun(&TreeFile, &SSfile);
     mtx matrix;
-    matrix.usaRead(SSfile); matrix.countSamples(SSfile);
-    SSheet SS[matrix.numSamples]; //schutzstaffel (^:
-    nodes = nodeNumber(TreeFile);
-    tree acacia[nodes+1];
+    firstRun(&matrix.TreeFile, &matrix.SSinput); matrix.outputOptions();
+    matrix.usaRead(matrix.SSinput);
+    matrix.countSamples(matrix.SSinput); nodes = nodeNumber(matrix.TreeFile);
+
+    vector<SSheet> SS (matrix.numSamples); //schutzstaffel (^: C:/Users/Leo/Desktop/
+    vector<tree> acacia (nodes+1);
 
     //grow tree
     cout<<"Growing tree... ";
@@ -57,17 +54,16 @@ int main()
             acacia[0].parentAddress = &acacia[0];
         }
         else
-            acacia[i].readSelf(TreeFile, i-1);
+            acacia[i].readSelf(matrix.TreeFile, i-1);
     }
     for (int i = 1; i <= nodes; ++i)
         acacia[0].list.insert(i);
-    cout<<"done.\n"<<endl;
-    //C:/Users/Leo/Desktop/
+    cout<<"done."<<endl;
 
     //load spreadsheet to memory
     cout<<"Loading spreadsheet to memory... ";
     for (int i = 0; i < matrix.numSamples; ++i)
-        SS[i].readSelf(SSfile, i);
+        SS[i].readSelf(matrix.SSinput, i);
 
     cout<<"done.\n====="<<endl;
 
@@ -75,25 +71,30 @@ int main()
 
     printf("Commencing post-initialization...\n");
     //allocate matrix here
+    printf("- Allocating matrix... ");
     double** dat = new double*[matrix.numSamples];
     for (int i = 0; i < matrix.numSamples; ++i)
         dat[i] = new double[matrix.numSamples];
-    matrix.data = dat; //and pass it to mtx object as pointer
-    printf("- Matrix allocated.\n");
+    matrix.data = dat; //and pass it to mtx object as pointer.
+    printf("done.\n");
 
-    //deorphanize
+    printf("- Deorphanizing tree... ");
+    //fill out the memory address of each node's parent.
     for (int i = 1; i <= nodes; ++i) {
         int id = acacia[i].parentID;
         acacia[i].parentAddress = &(acacia[id]);
     }
-    printf("- Tree deorphanized.\n");
+    printf("done.\n");
     
+    printf("- Branching tree... ");
+    //insert node #i's ID into its parent's list.
     for (int i = 1; i <= nodes; ++i)
-        if (acacia[i].isSample) branch(&acacia[i], acacia[i].parentAddress);
-    //know your parents in order to branch out.
-    printf("- Tree branched.\n");
+        if (acacia[i].isSample)
+            bulldozer(&acacia[i]);
+    printf("done.\n");
 
     //associate samples with nodes
+    printf("- Performing sample-node association... ");
     int sCount = 0;
     for (int i = 1; i <= nodes; ++i) {
         if (acacia[i].isSample) {
@@ -101,24 +102,38 @@ int main()
             ++sCount;
         }
     }
-    printf("- Sample-node association complete.\n");
+    printf("done.\n");
 
-    //generate matrix here
+    if (debug) {
+        printf("Debug mode enabled. Diagnostics are as follows.\n"
+            "We currently possess %d samples - %d of which are US samples.\n"
+            "Press enter to continue.\n"
+            "=====\n", matrix.numSamples-1, (int) matrix.usa.size());
+        cin.get();
+    }
+
+    //generate matrix
+    printf("- Generating similarity matrix - this might take a while.\n");
     for (int row = 0; row < matrix.numSamples; ++row) {
         for (int column = 0; column < matrix.numSamples; ++column) {
-            if (row == column) matrix.data[row][column] = 100;
+            if ( !XOR(matrix.isUS(row), matrix.isUS(column)) ) continue;
+            
+            if (row == column)
+                matrix.data[row][column] = 100;
+            else if (row > column)
+                matrix.data[row][column] = matrix.data[column][row];
             else {
-                int ownid = SS[row].node;
-                matrix.data[row][column] = simCompare(SS[row].node, SS[column].node, acacia[ownid].parentAddress);
+                int colid = SS[column].node, rowid = SS[row].node;
+                //compare row to column
+                //matrix.data[row][column] = simCompare(&acacia, rowid, colid);
+                matrix.data[row][column] = bullSim(&acacia[rowid], colid);
             }
         }
+        printf("\r-> Row %d done.", row);
     }
-    printf("- Similarity matrix generated.\n=====\n");
+    printf("\n- Similarity matrix generated.\n=====\n");
 
     //============================ diagnostics ============================
-    if (debug) printf("Debug mode enabled. Diagnostics are as follows.\n"
-            "We currently possess %d samples - %d of which are US samples.\n"
-            "=====\n", matrix.numSamples-1, (int) matrix.usa.size());
     if (SSdebug) {
         printf("\n=====\n"
                 "Spreadsheet debug has been enabled.\n");
@@ -166,30 +181,14 @@ int main()
             }
         }
     }
-    printf("done.\n=====");
+    printf("done.\n=====\n");
 
     //============================ data output ============================
-    cout<<"\nWould you like to overwrite the original spreadsheet with the new values? (Y/N)\n";
-    bool overwrite = matrix.YN();
-
-    if (overwrite)
-        printf("Understood. Overwriting contents.\n");
-    else {
-        cout<<"Understood. The new output file will be titled \"output.csv\" and placed in the same folder as the executable.\n"
-            <<"Please note, if there is already another \"output.csv\" file in this folder, it'll be overwritten.\nPress enter to continue."<< endl;
-        cin.get();
-    }
 
     printf("Writing output spreadsheet... ");
-
-    string fileName;
-    (overwrite)?
-        fileName = SSfile:
-        fileName = "output.csv";
-    
     for (int i = 0; i < matrix.numSamples; ++i) {
-        if (i == 0) SS[i].writeSelf(fileName, true, false, true); //title first, content later
-        SS[i].writeSelf(fileName, false, false, false);
+        if (i == 0) SS[i].writeSelf(matrix.SSoutput, true, false, true); //title first, content later
+        SS[i].writeSelf(matrix.SSoutput, false, false, false);
     }
     printf("done.\n=====");
 

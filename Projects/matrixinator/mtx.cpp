@@ -17,8 +17,77 @@
 #include "utils.hpp"
 #include "mtx.hpp"
 
+void nline() {printf("\n==================================================\n");}
+
 // =============================== tree ===============================
 
+/*
+//compare curNode's similarity to compNode
+double simCompare(std::vector<tree> *acacia, int curNode, int compNode)
+{
+    double hiSim = 0;
+
+    //sequential search among the whole vector for the highest similarity node that contains both
+    for (std::vector<tree>::const_iterator it = acacia->begin() + 1; it != acacia->end(); ++it) {
+        bool curIn = false, compIn = false;
+
+        //sweep this node's list
+        for (std::set<int>::const_iterator jt = (it->list).begin(); jt != (it->list).end(); ++jt) {
+            if (*jt == curNode) curIn = true;
+            if (*jt == compNode) compIn = true;
+            if (curIn && compIn) break;
+        }
+
+        //if the current node contains both samples
+        if ((curIn && compIn) && (it->similarity > hiSim))
+            hiSim = it->similarity;
+        if (hiSim == 100) return hiSim;
+    }
+
+    return hiSim;
+}*/
+
+//compare curNode's similarity to compNode
+double bullSim(tree* node, int compID) {
+    if (!node->isSample) return 0;
+
+    tree* parent = node->parentAddress;
+
+    while (parent->ID >= 1) {
+        //sweep parent node's list for the ID being compared
+        for (std::set<int>::const_iterator it = (parent->list).begin(); it != (parent->list).end(); ++it)
+            if (*it == compID)
+                return parent->similarity;
+        //if parent doesn't contain compNode, node becomes parent, parent becomes grandparent.
+        node = parent;
+        parent = parent->parentAddress;
+    }
+    //if all else fails, return the similarity of node 1
+    return node->similarity;
+}
+
+//carry all the node IDs from sample to root, adding them to the nodes' lists along the way
+void bulldozer(tree *node)
+{
+    if (!node->isSample) return;
+
+    std::vector<int> changeList;
+    int parID = (node->parentAddress)->ID;
+
+    while (parID >= 1) {
+        changeList.push_back(node->ID);
+        node = node->parentAddress;
+        parID = (node->parentAddress)->ID;
+
+        //add the change list to the parent's list
+        for (std::vector<int>::const_iterator it = changeList.begin(); it != changeList.end(); ++it)
+            (node->list).insert(*it);
+    }
+    //we're at node 1 at this point, parent ID 0
+    for (std::vector<int>::const_iterator it = changeList.begin(); it != changeList.end(); ++it)
+        (node->list).insert(*it);
+}
+/*
 //compare curNode's similarity to compNode
 double simCompare(int curNode, int compNode, tree* parent)
 {
@@ -28,8 +97,8 @@ double simCompare(int curNode, int compNode, tree* parent)
     }
     //if all else fails, recursion
     return simCompare(curNode, compNode, parent->parentAddress);
-}
-
+}*/
+/*
 void branch(tree *node, tree *parent)
 {
     bool debug = false;
@@ -42,8 +111,9 @@ void branch(tree *node, tree *parent)
         //only call self again up until ID 1, for 1 -> 0, do nothing
         branch(parent, parent->parentAddress);
     }
-}
+}*/
 
+//fetch the number of nodes within a .xml file
 int nodeNumber(std::string path)
 {
     std::fstream file (path, std::fstream::in);
@@ -61,12 +131,13 @@ int nodeNumber(std::string path)
     return count;
 }
 
+//read one line to memory (iterable)
 void tree::readSelf(std::string filePath, int line)
 {
     std::fstream xml (filePath, std::fstream::in);
     for (int i = 0; i < line; ++i)
         xml.ignore(2048, '/');
-    xml.precision(2);
+    xml.precision(3);
     std::string buffer;
 
     for (int i = 0; i < 3; ++i) {
@@ -87,17 +158,9 @@ void tree::readSelf(std::string filePath, int line)
     xml.close();
 }
 
-std::string tree::removeQuotes(std::string str)
-{
-    for (size_t i = 0; i < str.size(); ++i) {
-        if (str[i] == '\"')
-            str.erase(str.begin() + i);
-    }
-    return str;
-}
-
 // =============================== mtx ===============================
 
+//yes or no?
 bool mtx::YN(void) {
     char input;
     printf(">> "); input = getchar(); inflush();
@@ -114,18 +177,20 @@ bool mtx::YN(void) {
 
 }
 
+//check if a sample is foreign
 bool mtx::isUS(int index) {
     for (std::vector<int>::const_iterator it = usa.begin(); it != usa.end(); ++it)
         if (*it == index) return true;
     return false;
 }
 
+//identify the USA samples within a file
 bool mtx::usaRead(std::string filePath) {
     std::fstream fs (filePath, std::fstream::in);
 
     if (!fs.is_open()) return false;
     else {
-        fs.ignore(4096, '\n'); //ignore header
+        fs.ignore(INT_MAX, '\n'); //ignore header
         int cnt = 0; //position counter
         std::string in;
 
@@ -137,7 +202,7 @@ bool mtx::usaRead(std::string filePath) {
                 usa.insert(usa.end(), cnt);
             ++cnt;
 
-            fs.ignore(4096, '\n');
+            fs.ignore(INT_MAX, '\n');
         }
 
         fs.close();
@@ -145,19 +210,38 @@ bool mtx::usaRead(std::string filePath) {
     }
 }
 
+//count the total amount of samples within a file
 void mtx::countSamples(std::string path)
 {
     std::fstream fs (path, std::fstream::in);
-    fs.ignore(4096, '\n');
+    fs.seekg(1, std::ios_base::beg);
+    fs.ignore(INT_MAX, '\n');
     std::string buff;
     while (!fs.eof()) {
         buff.clear();
-        fs >> buff;
+        std::getline(fs, buff, ',');
         if (buff.size() > 5)
             ++numSamples;
-        fs.ignore(5000, '\n');
+        fs.ignore(INT_MAX, '\n');
     }
     fs.close();
+}
+
+void mtx::outputOptions(void) {
+    std::cout<<"\nWould you like to overwrite the original spreadsheet with the new values? (Y/N)\n";
+    overwrite = YN();
+
+    if (overwrite) {
+        SSoutput = SSinput;
+        printf("Understood. Overwriting contents.\nPress enter to continue.\n");
+        getchar(); return;
+    }
+    else {
+        SSoutput = "output.csv";
+        std::cout<<"Understood. The new output file will be titled \"output.csv\" and placed in the same folder as the executable.\n"
+            <<"Please note, if there is already another \"output.csv\" file in this folder, it'll be overwritten.\nPress enter to continue."<< std::endl;
+        getchar(); return;
+    }
 }
 
 // =============================== SSheet ===============================

@@ -150,6 +150,7 @@
             "command": "E:\\mingw-w64\\bin\\g++.exe",
             "args": [
                 "-g",
+                "-Ofast",
                 "${fileDirname}\\*.cpp", "${workspaceFolder}\\Libraries\\utils.cpp",
                 "-o",
                 "${workspaceFolder}\\Builds\\Release\\${fileBasenameNoExtension}.exe",
