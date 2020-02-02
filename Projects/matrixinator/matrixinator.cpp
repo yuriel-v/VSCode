@@ -40,7 +40,7 @@ int main()
     matrix.usaRead(matrix.SSinput);
     matrix.countSamples(matrix.SSinput); nodes = nodeNumber(matrix.TreeFile);
 
-    vector<SSheet> SS (matrix.numSamples); //schutzstaffel (^: C:/Users/Leo/Desktop/
+    vector<SSheet> SS (matrix.numSamples); //schutzstaffel (^:
     vector<tree> acacia (nodes+1);
 
     //grow tree
