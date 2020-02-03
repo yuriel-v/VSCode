@@ -54,6 +54,10 @@ double bullSim(tree* node, int compID) {
     tree* parent = node->parentAddress;
 
     while (parent->ID >= 1) {
+        //if the parent's similarity is below 80%, it's no longer a possible match
+        if (parent->similarity < 80)
+            return 0;
+
         //sweep parent node's list for the ID being compared
         for (std::set<int>::const_iterator it = (parent->list).begin(); it != (parent->list).end(); ++it)
             if (*it == compID)
