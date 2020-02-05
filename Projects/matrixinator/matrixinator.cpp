@@ -1,5 +1,5 @@
 /*
- * The Matrixinator v0.4 (alpha)
+ * The Matrixinator v0.5 (alpha)
  * a simple utility i made for my assistant Joshu for his laboratory endeavours.
  * its purpose lies in fetching a dendrogram containing samples and the similarity
  * between them, along with a spreadsheet file to identify foreign samples from US samples.
@@ -13,7 +13,7 @@
  * it then outputs the inferred values (if applicable) into a .csv spreadsheet. it can either
  * overwrite the input spreadsheet file or create a new one, depending on the user's choice.
  *
- * -Leo, 2-Feb-2020
+ * -Leo, 5-Feb-2020
  */
 
 #include <cstdio>
@@ -29,7 +29,7 @@ int main()
 {
     //============================ initialization ============================
     using namespace std;
-    cout<<"The Matrixinator v0.4 (alpha)"; nline();
+    cout<<"The Matrixinator v0.5 (alpha)"; nline();
     bool debug = false, SSdebug = false;
     int nodes;
 
@@ -42,6 +42,9 @@ int main()
 
     vector<SSheet> SS (matrix.numSamples); //schutzstaffel (^:
     vector<tree> acacia (nodes+1);
+    SSheet *ptr; SSheet *ptr2;
+    ptr = &(SS[5]);
+    ptr2 = &(SS[6]);
 
     //grow tree
     cout<<"Growing tree... ";
@@ -116,12 +119,12 @@ int main()
     printf("- Generating similarity matrix - this might take a while.\n");
     for (int row = 0; row < matrix.numSamples; ++row) {
         for (int column = 0; column < matrix.numSamples; ++column) {
-            if ( !XOR(matrix.isUS(row), matrix.isUS(column)) ) continue;
+            //if ( !XOR(matrix.isUS(row), matrix.isUS(column)) ) continue;
             
             if (row == column)
                 matrix.data[row][column] = 100;
-            else if (row > column)
-                matrix.data[row][column] = matrix.data[column][row];
+            /*else if (row > column)
+                matrix.data[row][column] = matrix.data[column][row];*/
             else {
                 int colid = SS[column].node, rowid = SS[row].node;
                 //compare row to column
@@ -151,6 +154,52 @@ int main()
 
     printf("Sweeping matrix... ");
 
+    for (int foreign = 0; foreign < matrix.numSamples; ++foreign) {
+        if (matrix.isUS(foreign)) continue; //do not process US samples!
+
+        int caseCount = 0; vector<int> matches;
+        for (vector<int>::const_iterator it = matrix.usa.begin(); it != matrix.usa.end(); ++it)
+            if (matrix.data[foreign][*it] >= 80) {
+                ++caseCount;
+                matches.push_back(*it);
+            }
+        
+        switch (caseCount) {
+        //case 0, do nothing 
+        case 1:
+            for (int iteration = 0; iteration < 8; ++iteration)
+                SS[foreign].octagon[iteration] = SS[matches[0]].octagon[iteration];
+        break;
+        default:
+            //multiply value by the similarity of that particular usa sample to the foreign sample
+            double tempOct[matches.size()][8];
+            int i = 0;
+            for (vector<int>::iterator it = matches.begin(); it != matches.end(); ++it) {
+                double curSim = matrix.data[foreign][*it];
+                for (int j = 0; j < 8; ++j)   //octagon value #j
+                    tempOct[i][j] = SS[*it].octagon[j] * curSim;
+                ++i;
+            }
+
+            //add up all the similarities for every usa sample matched
+            double tempSim = 0;
+            for (vector<int>::iterator it = matches.begin(); it != matches.end(); ++it)
+                tempSim += matrix.data[foreign][*it];
+            
+            //add up all of the octagon values for every usa sample
+            double foreignOctagon[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+            for (int i = 0; i < (int)matches.size(); ++i)
+                for (int j = 0; j < 8; ++j)
+                    foreignOctagon[j] += tempOct[i][j];
+            
+            //divide by the total similarity + print to octagon for foreign sample
+            for (int i = 0; i < 8; ++i) {
+                foreignOctagon[i] /= tempSim;
+                SS[foreign].octagon[i] = foreignOctagon[i];
+            }
+        }
+    }
+/*
     //reminder: 'column' is the foreign sample being analyzed, 'row' is the US sample being compared against it
     int caseCount; vector<int> matches;
     for (int column = 0; column < matrix.numSamples; ++column) {
@@ -161,7 +210,7 @@ int main()
         for (int row = column + 1; row < matrix.numSamples; ++row)
             if (matrix.isUS(row) && matrix.data[row][column] >= 80) {
                 ++caseCount;
-                matches.insert(matches.end(), row);
+                matches.push_back(row);
             }
 
         switch (caseCount) {
@@ -181,6 +230,7 @@ int main()
             }
         }
     }
+*/
     printf("done.\n=====\n");
 
     //============================ data output ============================

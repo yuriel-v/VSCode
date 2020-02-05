@@ -55,7 +55,7 @@ double bullSim(tree* node, int compID) {
 
     while (parent->ID >= 1) {
         //if the parent's similarity is below 80%, it's no longer a possible match
-        if (parent->similarity < 80)
+        if (node->similarity < 80)
             return 0;
 
         //sweep parent node's list for the ID being compared
@@ -373,6 +373,23 @@ void manualLoad(std::string* TreeFile, std::string* SSfile)
             (SSloaded)? printf("loaded.\n") : printf("failed.\n");
         }
     }
+
+    //.ini stuff
+    printf("Would you like to save the current files' paths into an initialization file? (Y/N)\n");
+
+    if (mtx::YN) {
+        printf("Understood. Saving current file paths to \"mtx.ini\", which will be placed in the\n"
+               "same folder as the executable.\n");
+
+        std::size_t SSI = SSfile->find_last_of("/\\"), TreeI = TreeFile->find_last_of("/\\");
+
+        std::fstream ini ("mtx.ini", std::fstream::out | std::fstream::trunc);
+        ini << "[Matrixinator Configuration File]\n";
+        ini << "SpreadSheetPath=" << SSfile->substr(0, SSI+1) << '\n';
+        ini << "TrianglePath=" << TreeFile->substr(0, TreeI+1) << '\n';
+    }
+    else
+        printf("Understood. Resuming program execution.\n");
 }
 
 bool isLoaded(std::string path) {
@@ -397,9 +414,9 @@ void firstRun(std::string* TreeFile, std::string* SSfile)
             printf("Understood. Loading configuration file... ");
 
             ini.ignore(256, '=');
-            ini >> *TreeFile;
+            std::getline(ini, *SSfile, '\n');
             ini.ignore(256, '=');
-            ini >> *SSfile;
+            std::getline(ini, *TreeFile, '\n');
 
             printf("done.\n\n");
 
