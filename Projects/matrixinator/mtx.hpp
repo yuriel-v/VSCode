@@ -36,60 +36,70 @@
 
 class mtx {
 public:
-	//attributes
-	double **data;					//1000x1000 matrices are too large, so dynamic allocation is in play
-	std::vector<int> usa;
-	int numSamples = 0;
-	std::string SSinput, TreeFile, SSoutput;
-	bool overwrite;
+    //attributes
+    double **data;    //1000x1000 matrices are too large, so dynamic allocation is in play
+    std::vector<int> usa;
+    int numSamples = 0;
+    std::string SSinput, TreeFile, SSoutput;
+    bool overwrite;
 
-	//methods
-	bool isUS(int);
-	bool YN(void);
-	//bool dataRead(std::string);
-	bool usaRead(std::string);
-	void countSamples(std::string);
-	void outputOptions(void);
+    //methods
+    bool isUS(int);
+    bool YN(void);
+    //bool dataRead(std::string);
+    bool usaRead(std::string);
+    void countSamples(std::string);
+    void outputOptions(void);
 };
 
 class SSheet {
 public:
-	//attributes
-	double octagon[8];
-	int node;
+    //attributes
+    double octagon[8];
+    int node;
 
-	//methods
-	void writeSelf(std::string, bool, bool, bool);
-	void readSelf(std::string, int);
+    //methods
+    void writeSelf(std::string, bool, bool, bool);
+    void readSelf(std::string, int);
 private:
-	std::string Key, Location, CollectionDate, Company, FSGID, Farm, Age_days, SampleOrigin,
-	SampleType, VMP, ibeA, traT, iutA, ompT, sitA, irp2, cvaC, tsh, iucC, iss;
-	//BS22, BS15, BS3, BS8, BS27, BS84, BS18, BS278 = octagon values (for title purposes)
+    std::string Key, Location, CollectionDate, Company, FSGID, Farm, Age_days, SampleOrigin,
+    SampleType, VMP, ibeA, traT, iutA, ompT, sitA, irp2, cvaC, tsh, iucC, iss;
+    //BS22, BS15, BS3, BS8, BS27, BS84, BS18, BS278 = octagon values (for title purposes)
 };
 
 class tree {
 public:
-	//attributes
-	int ID, parentID;
-	tree *parentAddress;
-	double similarity;
-	std::set<int> list;
-	bool isSample;
+    //attributes
+    int ID, parentID;
+    tree *parentAddress;
+    double similarity;
+    std::set<int> list;
+    bool isSample;
 
-	//methods
-	void readSelf(std::string, int);
+    //methods
+    void readSelf(std::string, int);
 };
 
-//bare functions
-//void branch(tree*, tree*);
-void bulldozer(tree*);  // new branching function
-void firstRun(std::string*, std::string*);
-void manualLoad(std::string*, std::string*);
-int nodeNumber(std::string);
-//double simCompare(std::vector<tree>*, int, int);
-double bullSim(tree*, int);  // new similarity finder
-bool isLoaded(std::string);
-void nline();
+
+//class for methods alone
+class fmtx {
+public:
+    //input
+    void firstRun(std::string*, std::string*);
+    void manualLoad(std::string*, std::string*);
+    int nodeNumber(std::string);
+    bool isLoaded(std::string);
+    void nline();
+
+    //post-init
+    void bulldozer(tree*);  // new branching function
+    double bullSim(tree*, int);  // new similarity finder
+    void treeGrow(mtx*, std::vector<tree>&, int);
+    void postInit(mtx*, std::vector<tree>&, int, std::vector<SSheet>&);
+
+    //processing
+    void matrixSweep(mtx*, std::vector<SSheet>&);
+};
 
 //10 contains 11, 12
 //4 contains 10 (11, 12), 5 (6 [7, 8], 9)

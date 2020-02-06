@@ -1,5 +1,5 @@
 /*
- * The Matrixinator v0.5 (alpha)
+ * The Matrixinator v0.6 (alpha)
  * a simple utility i made for my assistant Joshu for his laboratory endeavours.
  * its purpose lies in fetching a dendrogram containing samples and the similarity
  * between them, along with a spreadsheet file to identify foreign samples from US samples.
@@ -16,12 +16,9 @@
  * -Leo, 5-Feb-2020
  */
 
-#include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <sstream>
-#include <fstream>
 #include "mtx.hpp"
 #include "utils.hpp"
 
@@ -29,45 +26,29 @@ int main()
 {
     //============================ initialization ============================
     using namespace std;
-    cout<<"The Matrixinator v0.5 (alpha)"; nline();
-    bool debug = false, SSdebug = false;
+    fmtx fc; //"functions"
+    cout<<"The Matrixinator v0.6 (alpha)"; fc.nline();
     int nodes;
 
     //============================ data input ============================
 
     mtx matrix;
-    firstRun(&matrix.TreeFile, &matrix.SSinput); matrix.outputOptions();
+    fc.firstRun(&matrix.TreeFile, &matrix.SSinput); matrix.outputOptions();
     matrix.usaRead(matrix.SSinput);
-    matrix.countSamples(matrix.SSinput); nodes = nodeNumber(matrix.TreeFile);
+    matrix.countSamples(matrix.SSinput); nodes = fc.nodeNumber(matrix.TreeFile);
 
     vector<SSheet> SS (matrix.numSamples); //schutzstaffel (^:
     vector<tree> acacia (nodes+1);
-    SSheet *ptr; SSheet *ptr2;
-    ptr = &(SS[5]);
-    ptr2 = &(SS[6]);
 
     //grow tree
     cout<<"Growing tree... ";
-    for (int i = 0; i <= nodes; ++i) {
-        if (i == 0) {
-            acacia[0].ID = 0;
-            acacia[0].parentID = 0;
-            acacia[0].similarity = 0;
-            acacia[0].isSample = false;
-            acacia[0].parentAddress = &acacia[0];
-        }
-        else
-            acacia[i].readSelf(matrix.TreeFile, i-1);
-    }
-    for (int i = 1; i <= nodes; ++i)
-        acacia[0].list.insert(i);
+    fc.treeGrow(&matrix, acacia, nodes);
     cout<<"done."<<endl;
 
     //load spreadsheet to memory
     cout<<"Loading spreadsheet to memory... ";
     for (int i = 0; i < matrix.numSamples; ++i)
         SS[i].readSelf(matrix.SSinput, i);
-
     cout<<"done.\n====="<<endl;
 
     //============================ post-initialization ============================
@@ -81,165 +62,21 @@ int main()
     matrix.data = dat; //and pass it to mtx object as pointer.
     printf("done.\n");
 
-    printf("- Deorphanizing tree... ");
-    //fill out the memory address of each node's parent.
-    for (int i = 1; i <= nodes; ++i) {
-        int id = acacia[i].parentID;
-        acacia[i].parentAddress = &(acacia[id]);
-    }
-    printf("done.\n");
-    
-    printf("- Branching tree... ");
-    //insert node #i's ID into its parent's list.
-    for (int i = 1; i <= nodes; ++i)
-        if (acacia[i].isSample)
-            bulldozer(&acacia[i]);
-    printf("done.\n");
-
-    //associate samples with nodes
-    printf("- Performing sample-node association... ");
-    int sCount = 0;
-    for (int i = 1; i <= nodes; ++i) {
-        if (acacia[i].isSample) {
-            SS[sCount].node = i;
-            ++sCount;
-        }
-    }
-    printf("done.\n");
-
-    if (debug) {
-        printf("Debug mode enabled. Diagnostics are as follows.\n"
-            "We currently possess %d samples - %d of which are US samples.\n"
-            "Press enter to continue.\n"
-            "=====\n", matrix.numSamples-1, (int) matrix.usa.size());
-        cin.get();
-    }
-
-    //generate matrix
-    printf("- Generating similarity matrix - this might take a while.\n");
-    for (int row = 0; row < matrix.numSamples; ++row) {
-        for (int column = 0; column < matrix.numSamples; ++column) {
-            //if ( !XOR(matrix.isUS(row), matrix.isUS(column)) ) continue;
-            
-            if (row == column)
-                matrix.data[row][column] = 100;
-            /*else if (row > column)
-                matrix.data[row][column] = matrix.data[column][row];*/
-            else {
-                int colid = SS[column].node, rowid = SS[row].node;
-                //compare row to column
-                //matrix.data[row][column] = simCompare(&acacia, rowid, colid);
-                matrix.data[row][column] = bullSim(&acacia[rowid], colid);
-            }
-        }
-        printf("\r-> Row %d done.", row);
-    }
-    printf("\n- Similarity matrix generated.\n=====\n");
-
-    //============================ diagnostics ============================
-    if (SSdebug) {
-        printf("\n=====\n"
-                "Spreadsheet debug has been enabled.\n");
-        fstream output("test.csv", fstream::out | fstream::trunc);
-        output<<"Key,Location,CollectionDate,Company,FSGID,Farm,Age_days,SampleOrigin,SampleType,VMP,ibeA,traT,iutA,ompT,sitA,irp2,cvaC,tsh,iucC,iss"
-              <<",BS22,BS15,BS3,BS8,BS27,BS84,BS18,BS278\n";
-        output.close();
-        for (int i = 0; i < matrix.numSamples-1; ++i)
-            SS[i].writeSelf("test.csv", false, true, true);
-
-        printf("A copy of the spreadsheet in memory has been created, titled \"test.csv\".\n=====\n");
-    }
+    //other subroutines
+    fc.postInit(&matrix, acacia, nodes, SS);
 
     //============================ processing ============================
 
     printf("Sweeping matrix... ");
-
-    for (int foreign = 0; foreign < matrix.numSamples; ++foreign) {
-        if (matrix.isUS(foreign)) continue; //do not process US samples!
-
-        int caseCount = 0; vector<int> matches;
-        for (vector<int>::const_iterator it = matrix.usa.begin(); it != matrix.usa.end(); ++it)
-            if (matrix.data[foreign][*it] >= 80) {
-                ++caseCount;
-                matches.push_back(*it);
-            }
-        
-        switch (caseCount) {
-        //case 0, do nothing 
-        case 1:
-            for (int iteration = 0; iteration < 8; ++iteration)
-                SS[foreign].octagon[iteration] = SS[matches[0]].octagon[iteration];
-        break;
-        default:
-            //multiply value by the similarity of that particular usa sample to the foreign sample
-            double tempOct[matches.size()][8];
-            int i = 0;
-            for (vector<int>::iterator it = matches.begin(); it != matches.end(); ++it) {
-                double curSim = matrix.data[foreign][*it];
-                for (int j = 0; j < 8; ++j)   //octagon value #j
-                    tempOct[i][j] = SS[*it].octagon[j] * curSim;
-                ++i;
-            }
-
-            //add up all the similarities for every usa sample matched
-            double tempSim = 0;
-            for (vector<int>::iterator it = matches.begin(); it != matches.end(); ++it)
-                tempSim += matrix.data[foreign][*it];
-            
-            //add up all of the octagon values for every usa sample
-            double foreignOctagon[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-            for (int i = 0; i < (int)matches.size(); ++i)
-                for (int j = 0; j < 8; ++j)
-                    foreignOctagon[j] += tempOct[i][j];
-            
-            //divide by the total similarity + print to octagon for foreign sample
-            for (int i = 0; i < 8; ++i) {
-                foreignOctagon[i] /= tempSim;
-                SS[foreign].octagon[i] = foreignOctagon[i];
-            }
-        }
-    }
-/*
-    //reminder: 'column' is the foreign sample being analyzed, 'row' is the US sample being compared against it
-    int caseCount; vector<int> matches;
-    for (int column = 0; column < matrix.numSamples; ++column) {
-        if (matrix.isUS(column)) continue;
-
-        matches.clear();
-        caseCount = 0;
-        for (int row = column + 1; row < matrix.numSamples; ++row)
-            if (matrix.isUS(row) && matrix.data[row][column] >= 80) {
-                ++caseCount;
-                matches.push_back(row);
-            }
-
-        switch (caseCount) {
-        case 1:
-            for (int i = 0; i < 8; ++i)
-                SS[column].octagon[i] = SS[matches[0]].octagon[i];
-        break;
-        default:
-            for (int i = 0; i < 8; ++i) {
-                double foreignOctagon = 0, simSum = 0;
-                for (int j = 0; j < (int)matches.size(); ++j) {
-                    foreignOctagon += (SS[matches[j]].octagon[i]) * (matrix.data[matches[j]][column]);
-                    simSum += matrix.data[matches[j]][column];
-                }
-                foreignOctagon /= simSum;
-                SS[column].octagon[i] = foreignOctagon;
-            }
-        }
-    }
-*/
+    fc.matrixSweep(&matrix, SS);
     printf("done.\n=====\n");
 
     //============================ data output ============================
 
     printf("Writing output spreadsheet... ");
-    for (int i = 0; i < matrix.numSamples; ++i) {
-        if (i == 0) SS[i].writeSelf(matrix.SSoutput, true, false, true); //title first, content later
+    SS[0].writeSelf(matrix.SSoutput, true, false, true); //title first, content later
+    for (int i = 0; i < matrix.numSamples; ++i)
         SS[i].writeSelf(matrix.SSoutput, false, false, false);
-    }
     printf("done.\n=====");
 
     printf("\nTerminating program execution.");
