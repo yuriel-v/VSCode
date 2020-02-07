@@ -17,5 +17,6 @@ void inflush(void);				    //flushes input buffer, pauses if it's already empty
 void flushfgets(char*);			    //removes \n from string captured with fgets
 void ascanf(const char*, void*);	//scanf with inflush after
 bool XOR(bool, bool);               //exclusive OR operation between two booleans
+bool YN(void);                      //yes or no?
 
 #endif /* UTILS_H_ */

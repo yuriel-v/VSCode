@@ -37,7 +37,7 @@
 class mtx {
 public:
     //attributes
-    double **data;    //1000x1000 matrices are too large, so dynamic allocation is in play
+    double **data;    //for very large matrices
     std::vector<int> usa;
     int numSamples = 0;
     std::string SSinput, TreeFile, SSoutput;
@@ -45,9 +45,7 @@ public:
 
     //methods
     bool isUS(int);
-    bool YN(void);
-    //bool dataRead(std::string);
-    bool usaRead(std::string);
+    bool usaRead(void);
     void countSamples(std::string);
     void outputOptions(void);
 };
@@ -59,7 +57,7 @@ public:
     int node;
 
     //methods
-    void writeSelf(std::string, bool, bool, bool);
+    void writeSelf(std::string, bool, bool);
     void readSelf(std::string, int);
 private:
     std::string Key, Location, CollectionDate, Company, FSGID, Farm, Age_days, SampleOrigin,
@@ -100,8 +98,5 @@ public:
     //processing
     void matrixSweep(mtx*, std::vector<SSheet>&);
 };
-
-//10 contains 11, 12
-//4 contains 10 (11, 12), 5 (6 [7, 8], 9)
 
 #endif /* SOURCE_MTX_HPP_ */

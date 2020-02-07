@@ -17,8 +17,8 @@
  */
 
 #include <iostream>
-#include <string>
 #include <vector>
+#include <string>
 #include "mtx.hpp"
 #include "utils.hpp"
 
@@ -34,8 +34,7 @@ int main()
 
     mtx matrix;
     fc.firstRun(&matrix.TreeFile, &matrix.SSinput); matrix.outputOptions();
-    matrix.usaRead(matrix.SSinput);
-    matrix.countSamples(matrix.SSinput); nodes = fc.nodeNumber(matrix.TreeFile);
+    matrix.usaRead(); nodes = fc.nodeNumber(matrix.TreeFile);
 
     vector<SSheet> SS (matrix.numSamples); //schutzstaffel (^:
     vector<tree> acacia (nodes+1);
@@ -74,9 +73,9 @@ int main()
     //============================ data output ============================
 
     printf("Writing output spreadsheet... ");
-    SS[0].writeSelf(matrix.SSoutput, true, false, true); //title first, content later
+    SS[0].writeSelf(matrix.SSoutput, true, true); //title first, content later
     for (int i = 0; i < matrix.numSamples; ++i)
-        SS[i].writeSelf(matrix.SSoutput, false, false, false);
+        SS[i].writeSelf(matrix.SSoutput, false, false);
     printf("done.\n=====");
 
     printf("\nTerminating program execution.");

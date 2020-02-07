@@ -12,12 +12,34 @@ void sysexit(int a) {
 	std::cin.get(); exit(a);
 }
 
-void inflush(void) { char c; while ((c = std::cin.get()) != '\n' && c != EOF); }
+void inflush(void) {
+    using namespace std;
+    string temp;
+    getline(cin, temp);
+}
 
-void flushfgets(char* a) { if ( a[strlen(a)-1] == '\n' ) a[strlen(a)-1] = 0; }
+void flushfgets(char* a) {
+	if ( a[strlen(a)-1] == '\n' ) a[strlen(a)-1] = 0;
+}
 
-void ascanf(const char* c, void* p) { scanf(c, p); inflush(); }
+void ascanf(const char* c, void* p) {
+	scanf(c, p); inflush();
+}
 
 bool XOR(bool a, bool b) {
 	return (a + b) % 2;
+}
+
+bool YN(void) {
+    char input;
+    std::cout<<">> "; std::cin.get(input); inflush();
+
+    input = toupper(input);
+    //assures input is either Y or N
+    while (input != 'Y' && input != 'N') {
+        printf("(Y/N) >> ");
+        std::cin.get(input); inflush();
+        input = toupper(input);
+    }
+    return (input == 'Y')? true : false;
 }

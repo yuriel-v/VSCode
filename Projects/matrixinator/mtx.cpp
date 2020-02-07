@@ -55,9 +55,12 @@ void fmtx::postInit(mtx* matrix, std::vector<tree>& acacia, int nodes, std::vect
             if (row == column)
                 matrix->data[row][column] = 100;
             
+            else if (row > column)
+                matrix->data[row][column] = matrix->data[column][row];
+                //similarity matrices are mirrored
+
             else {
                 int colid = SS[column].node, rowid = SS[row].node;
-                //compare row to column
                 matrix->data[row][column] = bullSim(&acacia[rowid], colid);
             }
         }
@@ -130,7 +133,7 @@ void fmtx::matrixSweep(mtx* matrix, std::vector<SSheet> &SS) {
 }
 void fmtx::nline() {printf("\n==================================================\n");}
 
-//compare curNode's similarity to compNode
+//compare node's similarity to compID
 double fmtx::bullSim(tree* node, int compID) {
     if (!node->isSample) return 0;
 
@@ -217,20 +220,19 @@ void fmtx::manualLoad(std::string* TreeFile, std::string* SSfile)
 
         if (TreeLoaded && SSloaded) printf("done.\n");
         else {
-            printf("error loading the following files. Try again.\n");
+            printf("error loading the following files. Try again.\n-> If you wish to quit the program, simply type 'exit')\n-\n");
 
             printf("Dendrogram (tree) file: ");
             (TreeLoaded)? printf("loaded.\n") : printf("failed.\n");
 
             printf("Spreadsheet file: ");
-            (SSloaded)? printf("loaded.\n") : printf("failed.\n");
+            (SSloaded)? printf("loaded.\n-\n") : printf("failed.\n-\n");
         }
     }
 
     //.ini stuff
     printf("Would you like to save the current files' paths into an initialization file? (Y/N)\n");
-
-    if (mtx::YN) {
+    if (YN()) {
         printf("Understood. Saving current file paths to \"mtx.ini\", which will be placed in the\n"
                "same folder as the executable.\n");
 
@@ -263,7 +265,7 @@ void fmtx::firstRun(std::string* TreeFile, std::string* SSfile)
     if (ini.is_open()) {
         printf("Initialization file found. Do you wish to load?\n"
                 "You will be asked for input files' folders otherwise. (Y/N)\n");
-        if (mtx::YN) {
+        if (YN()) {
             printf("Understood. Loading configuration file... ");
 
             ini.ignore(256, '=');
@@ -297,16 +299,16 @@ void fmtx::firstRun(std::string* TreeFile, std::string* SSfile)
                 if (TreeLoaded && SSloaded) {
                     *TreeFile += TreeName;
                     *SSfile += SSname;
-                    printf("done.\n");
+                    cout<<"done."<<endl;
                 }
                 else {
-                    printf("error loading the following files. Try again. (if you wish to quit the program, simply type 'exit')\n");
+                    printf("error loading the following files. Try again.\n-> If you wish to quit the program, simply type 'exit')\n-\n");
 
                     printf("Dendrogram (tree) file: ");
                     (TreeLoaded)? printf("loaded.\n") : printf("failed.\n");
 
                     printf("Spreadsheet file: ");
-                    (SSloaded)? printf("loaded.\n") : printf("failed.\n");
+                    (SSloaded)? printf("loaded.\n-\n") : printf("failed.\n-\n");
 
                     printf("\n=====\n");
                 }
@@ -314,7 +316,7 @@ void fmtx::firstRun(std::string* TreeFile, std::string* SSfile)
         } //end-if (Y/N)
 
         else {
-            printf("Understood. Commencing manual load.\n");
+            printf("Understood. Commencing manual load.\n-\n");
             ini.close(); manualLoad(TreeFile, SSfile);
         }
     }
@@ -353,23 +355,6 @@ void tree::readSelf(std::string filePath, int line)
 
 // =============================== mtx ===============================
 
-//yes or no?
-bool mtx::YN(void) {
-    char input;
-    printf(">> "); input = getchar(); inflush();
-
-    input = toupper(input);
-    //assures input is either Y or N
-    while (input != 'Y' && input != 'N') {
-        printf("(Y/N) >> ");
-        input = getchar(); inflush();
-        input = toupper(input);
-    }
-
-    return (input == 'Y')? true : false;
-
-}
-
 //check if a sample is foreign
 bool mtx::isUS(int index) {
     for (std::vector<int>::const_iterator it = usa.begin(); it != usa.end(); ++it)
@@ -377,9 +362,9 @@ bool mtx::isUS(int index) {
     return false;
 }
 
-//identify the USA samples within a file
-bool mtx::usaRead(std::string filePath) {
-    std::fstream fs (filePath, std::fstream::in);
+//identify the USA samples within a file and count the samples in one go
+bool mtx::usaRead(void) {
+    std::fstream fs (SSinput, std::fstream::in);
 
     if (!fs.is_open()) return false;
     else {
@@ -396,6 +381,7 @@ bool mtx::usaRead(std::string filePath) {
             ++cnt;
 
             fs.ignore(INT_MAX, '\n');
+            ++numSamples;
         }
 
         fs.close();
@@ -478,7 +464,7 @@ void SSheet::readSelf(std::string filePath, int line) {
     sprSheet.close();
 }
 
-void SSheet::writeSelf(std::string filePath, bool truncate, bool debugmode, bool title) {
+void SSheet::writeSelf(std::string filePath, bool truncate, bool title) {
     std::fstream output;
     (truncate)?
         output.open(filePath, std::fstream::out | std::fstream::trunc):
@@ -514,15 +500,8 @@ void SSheet::writeSelf(std::string filePath, bool truncate, bool debugmode, bool
                << iucC <<","
                << iss;
 
-        if (!debugmode) { //for serious stuff
             for (int j = 0; j < 8; ++j)
                 output << "," << octagon[j];
-        }
-
-        else if (Location == "US" || Location == "USA") { //premature printing
-            for (int j = 0; j < 8; ++j)
-                output << "," << octagon[j];
-        }
 
         output << ",\n";
     }
